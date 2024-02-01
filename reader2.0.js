@@ -3,17 +3,16 @@ import got from 'got';
 
 export class reader2 {
 
-    static #urlRegex = /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/ig;
+    static #urlRegex = /[(http(s)?):\/\/(www\.)?a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/i;
 
     /**
      * 
      * @param {string} url 
-     * @returns {Promise<HTMLElement>} html body 
-     * @description Ritorna la pagina richiesta validata
+     * @returns
+     * @description metodo per leggere le pagine html
      */
-    static async serializeHtml(url) {
-        // if (this.#urlRegex.test(url)) {
-        if (true) {
+    static async #serializeHtml(url) {
+        if (this.#urlRegex.test(url)) {
             const rawHtml = await got(url);
             if (rawHtml.ok) {
                 const html = parse(rawHtml.body);
@@ -26,7 +25,11 @@ export class reader2 {
                 throw new Error();
             }
         } else {
-            throw new Error();
+            console.log(this.#urlRegex.test(url));
+            console.log(this.#urlRegex.test(url));
+            console.log(this.#urlRegex.test(url));
+            console.log(this.#urlRegex.test(url));
+            throw new Error(this.#urlRegex.test(url));
         }
 
     }
@@ -36,8 +39,9 @@ export class reader2 {
      * 
      * @param {HTMLElement} html 
      * @returns {HTMLElement[]}
+     * @description ritorna tutti gli articoli presenti in una pagina
      */
-    static getAllPageRows(html) {
+    static #getAllPageRows(html) {
         const result = html.querySelector('.news_items_column').childNodes;
         return result;
     }
@@ -46,8 +50,9 @@ export class reader2 {
      * 
      * @param {HTMLElement} articleRow
      * @returns 
+     * @description legge tutte le informazioni dell'anteprima di un'articolo
      */
-    static readArticleRow(articleRow) {
+    static #readArticleRow(articleRow) {
         const title = articleRow.querySelector('.title').getElementsByTagName('A')[0].innerText;
         const date = articleRow.querySelector('.date').innerText;
         const category = articleRow.querySelector('.shout').innerText;
@@ -68,22 +73,23 @@ export class reader2 {
     /**
      * 
      * @param {HTMLElement} html 
-     * @returns {number} number of page
+     * @returns 
      */
     static #getNumberOfPages(html) {
-        return html
+        return Number(html
             .querySelectorAll('.page-link')
             .at(-2).innerText
-            .replace('.', '');
+            .replace('.', ''));
     }
 
     /**
      * 
      * @param {{articleID,category,title,articleUrl,date,image}} articleRow
      * @returns 
+     * @description legge tutte le informazioni di un'articolo
      */
-    static async serializeArticle(articleRow) {
-        const html = await this.serializeHtml(articleRow.articleUrl);
+    static async #serializeArticle(articleRow) {
+        const html = await this.#serializeHtml(articleRow.articleUrl);
         const articleTitle = html.querySelector('h1').text.trim();
 
         const numberOfCommets = Number(html.querySelector('.comments_number').innerText);
@@ -118,6 +124,12 @@ export class reader2 {
         }
     }
 
+    /**
+     * 
+     * @param {HTMLElement} comment 
+     * @returns
+     * @description legge tutti i commenti di un'articolo
+     */
     static #serilaizeComment(comment) {
         const commentBody = comment.querySelector('div.comment-body');
         const commentReplys = comment.querySelector('.children');
@@ -134,28 +146,30 @@ export class reader2 {
         }
 
         return {
-            author: author,
-            date: date,
-            body: text,
-            reply: reply,
+            author,
+            date,
+            text,
+            reply,
         };
     }
 
     /**
      * 
      * @param {Date} date 
+     * @returns
+     * @description ritorna tutti gli articoli di un giorno
      */
     static async serializeAllArticlesPagesByDate(date) {
-        let html =  await this.serializeHtml(`https://ilsaronno.it/${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`);
-        const TotalPages =  Number(this.#getNumberOfPages(html));
+        let html =  await this.#serializeHtml(`https://ilsaronno.it/${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`);
+        const TotalPages =  this.#getNumberOfPages(html);
 
         const res = [];
         for (let index = 1; index !== TotalPages+1; index++) {
-            html = await this.serializeHtml(`https://ilsaronno.it/${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}/page/${index}`);
-            let articles = this.getAllPageRows(html);
+            html = await this.#serializeHtml(`https://ilsaronno.it/${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}/page/${index}`);
+            let articles = this.#getAllPageRows(html);
 
             for (let article of articles) {
-                res.push(await this.serializeArticle(this.readArticleRow(article)));
+                res.push(await this.#serializeArticle(this.#readArticleRow(article)));
             }
         }
 
