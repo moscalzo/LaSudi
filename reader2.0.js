@@ -25,11 +25,7 @@ export class reader2 {
                 throw new Error();
             }
         } else {
-            console.log(this.#urlRegex.test(url));
-            console.log(this.#urlRegex.test(url));
-            console.log(this.#urlRegex.test(url));
-            console.log(this.#urlRegex.test(url));
-            throw new Error(this.#urlRegex.test(url));
+            throw new Error();
         }
 
     }
