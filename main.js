@@ -1,7 +1,11 @@
 //import { ArtilcesReader } from './reader.js';
 import { reader2 } from './reader2.0.js';
 
-for (let val of await reader2.serializeAllArticlesPagesByDate(new Date())) {
+// for (let val of await reader2.serializeAllArticlesPagesByDate(new Date())) {
+//     console.debug(val);
+// }
+
+for (let val of await reader2.serializeAllArticlesPagesByAuthor('aldo-falgares')) {
     console.debug(val);
 }
 
